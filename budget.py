@@ -1,5 +1,3 @@
-import math
-
 class Category:
     
     # class attribute 
@@ -9,28 +7,26 @@ class Category:
         self.budget_category = budget_category
         self.ledger = []
     
-    def __repr__(self):
-        s = f"{self.budget_category:*^30}\n" 
+    def __str__(self):
+        ss = [self.budget_category.center(30, "*")]
         acc = 0
-        
-        for item in self.ledger:
-            print("The item: ", item)
-            s += f"{item['description']}{item['amount']:>{30-len(item['description'])}}\n"
-            acc += item['amount']
-            
-        s += f"Total: {acc}"
-        return s
-    """"""
+        for t in self.ledger:
+            desc = t["description"][0:23]
+            ss.append("{:<23}{:>7.2f}".format(desc, t["amount"]))
+            acc += t['amount']
+        ss.append("Total: {}".format(acc))
+        return "\n".join(ss)
+
     def get_balance(self):
         accumulated_total = 0
         for i in self.ledger:
             accumulated_total += float(i["amount"])
         return accumulated_total
       
-    def deposit(self, amount, description): 
+    def deposit(self, amount, description = ""): 
         self.ledger.append({"amount": amount, "description": description})
            
-    def withdraw(self, amount, description):
+    def withdraw(self, amount, description = ""):
         if self.check_funds(amount):
             self.ledger.append({"amount": -amount, "description": description})
             return True
@@ -56,20 +52,7 @@ class Category:
         for i in self.ledger:
             print(i["description"] + str(i["amount"])+"\n")
         print("Total: "+self.get_balance)
-"""
-food = Category("Food")
-entertainment = Category("Entertainment")
-food.deposit(100,"Pizza Party")
-food.transfer(25, entertainment)
-print(str(food))
 
-print(entertainment.ledger)
-
-print(food.ledger)
-
-print(food.get_balance())
-print(entertainment.get_balance())
-"""
 def create_spend_chart(categories):
     dictionary = calculate_percentages(categories)
     create_strings(dictionary)
@@ -128,7 +111,6 @@ def create_strings(dictionary):
                 bottom_line += '_'
             else:
                 bottom_line += '___'
-        
         bottom_line += '__'
     else:
         bottom_line = ''
@@ -143,8 +125,7 @@ def create_strings(dictionary):
             longest_name = i 
         else:
             longest_name = previous
-    string = "               "
-    #Creating vertical strings
+
     rtn_string = ""
     replace_str = "               "
     for i in range(0, len(longest_name)):
@@ -155,12 +136,6 @@ def create_strings(dictionary):
                 replace_str = replace_string(replace_str, j[1], j[0][i])
             else:
                 replace_str = replace_string(replace_str, j[1],' ')
-            """
-                rtn_string += replace_string(string, j[1], j[0][i])
-            else:
-                rtn_string += replace_string(string, j[1], ' ')
-            """
-            #print(replace_str)
         
         replace_str += "\n"
         rtn_string += replace_str
@@ -198,14 +173,8 @@ def replace_string(string, replace_position, char):
     new_list = []
     for i in range(0, len(string)):
         new_list.append(string[i])
-    """ 
-    print("----------------------------------------------")
-    print(string, " ",replace_position,"   ---  ", new_list)
-    print("----------------------------------------------")
-    """
+
     new_list[replace_position] = char
     new_string = ''.join(new_list)
     
     return new_string
-
-#create_spend_chart([food, entertainment])
