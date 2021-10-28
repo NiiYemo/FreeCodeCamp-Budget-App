@@ -117,8 +117,7 @@ def create_spend_chart(categories):
 
        Returns:
           A string is returned, formed from the calculted expenditures
-          from the various categories within
-          the list.
+          from the various categories within the list.
     """
     spending = [c.spent() for c in categories]
     total = sum(spending)
