@@ -2,7 +2,7 @@
 The Category class for budget allocations.
 """
 class Category:
-    """This clastring instantiate's objects based on budget categories.
+    """This Class instantiate's objects based on budget categories.
 
     The class is initialised with a budget category as a string. For the
     category, the class allows for deposits and withdrawals. Which are stored in a ledger
