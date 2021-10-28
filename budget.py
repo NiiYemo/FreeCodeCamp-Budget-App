@@ -1,180 +1,150 @@
+"""
+The Category class for budget allocations.
+"""
 class Category:
-    
-    # class attribute 
-    
-    
+    """This clastring instantiate's objects based on budget categories.
+
+    The class is initialised with a budget category as a string. For the
+    category, the class allows for deposits and withdrawals. Which are stored in a ledger
+    as a list. The amount of money and a description of the transaction,
+    are stored as a dictionary entry,
+    within the ledger. Transfers can be made, the current balance can be viewed.
+    Lastly a report of all transactions can be viewed from calling the string method and
+    a chart of expendeture based on percentages.
+
+      Typical usage example:
+
+      food = budget.Category("Food")
+      food.deposit(1000, "initial deposit")
+      food.withdraw(10.15, "groceries")
+      food.withdraw(15.89, "restaurant and more food for dessert")
+    """
     def __init__(self, budget_category):
         self.budget_category = budget_category
         self.ledger = []
-    
+
     def __str__(self):
-        ss = [self.budget_category.center(30, "*")]
+        string = [self.budget_category.center(30, "*")]
         acc = 0
-        for t in self.ledger:
-            desc = t["description"][0:23]
-            ss.append("{:<23}{:>7.2f}".format(desc, t["amount"]))
-            acc += t['amount']
-        ss.append("Total: {}".format(acc))
-        return "\n".join(ss)
+        for i in self.ledger:
+            desc = i["description"][0:23]
+            string.append("{:<23}{:>7.2f}".format(desc, i["amount"]))
+            acc += i['amount']
+        string.append("Total: {}".format(acc))
+        return "\n".join(string)
 
     def get_balance(self):
+        """Fetches the balance."""
         accumulated_total = 0
         for i in self.ledger:
             accumulated_total += float(i["amount"])
         return accumulated_total
-      
-    def deposit(self, amount, description = ""): 
+
+    def deposit(self, amount, description = ""):
+        """Adds an amount to the ledger.
+
+        Args:
+            amount: A double value.
+            description: A string value, pertaining to the amount entered.
+        """
         self.ledger.append({"amount": amount, "description": description})
-           
+
     def withdraw(self, amount, description = ""):
+        """Adds an amount to from the ledger.
+
+        Args:
+            amount: A double value.
+            description: A string value, pertaining to the amount entered.
+
+        Returns:
+            A boolean.
+        """
+        rtn = False
         if self.check_funds(amount):
             self.ledger.append({"amount": -amount, "description": description})
-            return True
-        else: 
-            return False
-        
+            rtn = True
+        return rtn
+
     def transfer(self, amount, destination_obj):
+        """Withdraws an amount from the current object, then adds it to the
+           destination object.
+
+        Args:
+            amount: A double value.
+            destination_obj: Another Category object.
+
+        Returns:
+            A boolean is returned.
+        """
+        rtn = False
         if self.check_funds(amount):
             self.withdraw(amount, "Transfer to " + destination_obj.budget_category)
             destination_obj.deposit(amount, "Transfer from " + self.budget_category)
-            return True
-        else:
-            return False
-        
+            rtn = True
+        return rtn
+
     def check_funds(self, amount):
+        """Returns a boolean, pertaining to whether an amount is more than
+           the balance.
+
+           Returns:
+               A boolean is returned.
+        """
+        rtn = True
         if self.get_balance() < amount:
-            return False
-        else:
-            return True 
-    
-    def display(self):
-        print("*************Food*************")
+            rtn = False
+        return rtn
+
+    def spent(self):
+        """Returns the expenditure from the category.
+
+           Returns:
+              A minus double number is returned. Which is calculated from the ledger.
+        """
+        expenditure = 0
         for i in self.ledger:
-            print(i["description"] + str(i["amount"])+"\n")
-        print("Total: "+self.get_balance)
+            amount = i["amount"]
+            if amount < 0:
+                expenditure += amount
+
+        return -expenditure
 
 def create_spend_chart(categories):
-    dictionary = calculate_percentages(categories)
-    create_strings(dictionary)
-    
-def calculate_percentages(categories):
-    
-    total_withdrawals = 0
-    dictionary = {}
-    
-    # Get total withdrawals 
-    for i in categories:
-        category_ledger = i.ledger
-        total_category_withdrawals = 0
-        
-        for j in category_ledger:
-            if j["amount"] < 0: total_category_withdrawals += j["amount"]
-        
-        dictionary[i.budget_category] = abs(total_category_withdrawals) 
-        total_withdrawals += abs(total_category_withdrawals) 
-        
-    #Calculate Percenteges 
-    for i in dictionary:
+    """Returns a chart representation of the expenditure which is in percentages.
 
-        number = int((dictionary[i]/total_withdrawals) * 100)
-        dictionary[i] = round_down(number)
-        
-    return dictionary
-    
-def create_strings(dictionary):
-    position_counter_1 = 4
-    bottom_line = "    _"
-    all_strings = {100:"100|            ", 90: " 90|            ",80: " 80|            ",70:" 70|            ",
-                   60:" 60|            ", 50: " 50|            ",40:" 40|            ",30:" 30|            ",
-                   20:" 20|            ", 10:" 10|            ",0:"  0|            "}
-    list_ = []
-    
-    #Bar chart
-    for i in dictionary:
-        percentage = dictionary[i] 
-        
-        position_counter_1 += 3
-        while percentage >= 0:
-            string = all_strings[percentage] 
-            all_strings[percentage] = replace_string(string, position_counter_1, 'o')
-            percentage -= 10
-        tuple_ = (i, position_counter_1)
-        list_.append(tuple_)
+        Args:
+            categories: A list of Category objects .
 
-    for i in all_strings:
-        print(all_strings[i])
-        
-    #Closing line
-    if len(dictionary) > 0:
-        for i in range(len(dictionary)):
-            if i == 0:
-                bottom_line += '_'
+       Returns:
+          A string is returned, formed from the calculted expenditures
+          from the various categories within
+          the list.
+    """
+    spending = [c.spent() for c in categories]
+    total = sum(spending)
+    percentages = [i * 100 / total for i in spending]
+    string = ["Percentage spent by category"]
+    for i in range(0, 11):
+        level = 10 * (10 - i)
+        single_line = '{:>3}| '.format(level)
+        for j in percentages:
+            if j >= level:
+                single_line += "o  "
             else:
-                bottom_line += '___'
-        bottom_line += '__'
-    else:
-        bottom_line = ''
-        
-    print(bottom_line)
-        
-    #Category Names
-    previous = ''
-    longest_name = ''
-    for i in dictionary:
-        if len(str(i)) > len(previous):
-            longest_name = i 
-        else:
-            longest_name = previous
+                single_line += "   "
+        string.append(single_line)
+    padding = " " * 4
+    string.append(padding + "-" * 3 * len(spending) + "-")
 
-    rtn_string = ""
-    replace_str = "               "
-    for i in range(0, len(longest_name)):
-        replace_str = "               "
-        for j in list_:
-            
-            if i < len(j[0]):
-                replace_str = replace_string(replace_str, j[1], j[0][i])
-            else:
-                replace_str = replace_string(replace_str, j[1],' ')
-        
-        replace_str += "\n"
-        rtn_string += replace_str
-        
-    
-    print(rtn_string) 
-           
-def round_down(percentage):
-    if percentage >= 0 and percentage < 10:
-        return 0
-    elif percentage >= 10 and percentage < 20:
-        return 10
-    elif percentage >= 20 and percentage < 30:
-        return 20
-    elif percentage >= 30 and percentage < 40:
-        return 30
-    elif percentage >= 40 and percentage < 50:
-        return 40
-    elif percentage >= 50 and percentage < 60:
-        return 50
-    elif percentage >= 60 and percentage < 70:
-        return 60
-    elif percentage >= 70 and percentage < 80:
-        return 70
-    elif percentage >= 80 and percentage < 90:
-        return 80
-    elif percentage >= 90 and percentage < 100:
-        return 90
-    elif percentage == 100:
-        return 100
-    
+    names = [c.budget_category for c in categories]
+    max_name = max(map(len, names))
+    for i in range(0, max_name):
+        spaces_string = padding
+        for name in names:
+            spaces_string += " "
+            spaces_string += name[i] if len(name) > i else " "
+            spaces_string += " "
 
-        
-def replace_string(string, replace_position, char):
-    new_list = []
-    for i in range(0, len(string)):
-        new_list.append(string[i])
+        string.append(spaces_string + " ")
 
-    new_list[replace_position] = char
-    new_string = ''.join(new_list)
-    
-    return new_string
+    return "\n".join(string)
